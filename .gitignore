@@ -39,3 +39,11 @@ frontend/.streamlit/secrets.toml
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+# Windows metadata
+*:Zone.Identifier
+Thumbs.db
+
+# Audios (on garde le dossier vide, mais pas les gros fichiers)
+tests/test_data/audios/*.m4a
+tests/test_data/audios/*.wav
+tests/test_data/audios/*.mp3
