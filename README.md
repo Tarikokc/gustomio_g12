@@ -38,60 +38,34 @@ Canal entrant (Voix / Email / PDF)
 
 ---
 
-## 🗂️ Structure du projet
+## 🗂️ Structure du projet (actuelle)
 
-```
+```bash
 gustomio_g12/
 ├── backend/
 │   ├── api/
-│   │   ├── routes/
-│   │   │   ├── orders.py         # CRUD commandes
-│   │   │   ├── ingestion.py      # Upload voix/email/PDF
-│   │   │   └── admin.py          # Config LLM, référentiel produits
-│   │   ├── main.py               # FastAPI app entry point
-│   │   └── deps.py               # Dépendances & auth
-│   ├── core/
-│   │   ├── config.py             # Settings Pydantic
-│   │   ├── database.py           # PostgreSQL / SQLAlchemy
-│   │   ├── models.py             # ORM models
-│   │   └── schemas.py            # Pydantic schemas
-│   ├── integrations/
-│   │   ├── whisper_client.py     # Transcription audio (Whisper via Groq)
-│   │   ├── llm_extractor.py      # Extraction structurée LLM
-│   │   ├── pdf_parser.py         # LlamaParse / PyMuPDF
-│   │   ├── odoo_client.py        # Intégration Odoo XML-RPC
-│   │   └── notifier.py           # SMS / Email auto
-│   └── workers/
-│       ├── celery_app.py         # Config Celery + Redis
-│       └── tasks.py              # Tâches asynchrones
-├── frontend/
-│   ├── pages/
-│   │   ├── 1_dashboard.py        # KPIs + résumé du jour
-│   │   ├── 2_flux_commandes.py   # Liste chronologique filtrée
-│   │   ├── 3_detail_commande.py  # Vue détail + actions rapides
-│   │   ├── 4_supervision.py      # Filtre "à risque" < 75%
-│   │   ├── 5_historique.py       # Recherche + exports + stats
-│   │   └── 6_administration.py   # Gestion LLM + règles métier
-│   ├── components/
-│   │   ├── order_card.py         # Composant carte commande
-│   │   ├── confidence_badge.py   # Badge score vert/orange/rouge
-│   │   └── action_buttons.py     # Valider / Modifier / Rejeter / Demander
-│   └── app.py                    # Streamlit entry point
+│   │   └── routes/               # Endpoints FastAPI
+│   ├── core/                     # Configuration, settings
+│   ├── integrations/             # Clients externes (Groq, Odoo, etc.)
+│   ├── models/                   # Pydantic schemas
+│   ├── services/
+│   │   ├── audio/                # Transcription + extraction voix (ta partie)
+│   │   ├── email/
+│   │   ├── pdf/
+│   │   └── common/               # Utils partagés (LLM, Odoo, etc.)
+│   ├── utils/
+│   └── workers/                  # Tâches asynchrones
 ├── tests/
-│   ├── test_extractor.py
-│   ├── test_odoo_client.py
-│   └── test_api_orders.py
-├── scripts/
-│   ├── seed_db.py                # Données de test
-│   └── migrate.py                # Migrations DB
+│   └── test_data/
+│       ├── audios/               # Tes enregistrements vocaux
+│       ├── email/
+│       └── pdf/
+├── frontend/                     # Streamlit (à venir)
 ├── docs/
-│   └── api_reference.md          # Référence API + exemples
+├── scripts/
+├── requirements.txt
 ├── .env.example
-├── docker-compose.yml
-├── Dockerfile
-├── pyproject.toml
 └── README.md
-```
 
 ---
 

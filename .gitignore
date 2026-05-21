@@ -1,0 +1,41 @@
+# Environnement
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Données de test (gros fichiers)
+tests/test_data/audios/*.m4a
+tests/test_data/audios/*.wav
+tests/test_data/audios/*.mp3
+tests/test_data/pdfs/*.pdf
+tests/test_data/emails/*.eml
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Base de données locale
+*.sqlite
+*.db
+
+# Front-end (si Streamlit ou autre)
+frontend/.streamlit/secrets.toml
+
+# Docker
+.docker/
+*.dockerignore
+
+# Cache Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
