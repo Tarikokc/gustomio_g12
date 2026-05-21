@@ -1,18 +1,17 @@
 import re
 import json
+import os
+import sys
 from typing import List, Optional
 from pydantic import BaseModel, Field, field_validator
-from groq import Groq
-import os
-import sys  # ← ajoute
 from dotenv import load_dotenv
+import ollama
 
 load_dotenv()
 
 sys.path.insert(0, os.path.dirname(__file__))
 from text_extractor import extract_from_pdf_file, extract_from_pdf_bytes
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 # ── Schéma de sortie ──────────────────────────────────────────────────────────
 
 UNIT_ALIASES = {
@@ -26,9 +25,20 @@ UNIT_ALIASES = {
 
 class OrderLine(BaseModel):
     produit: str
-    # quantite: float = Field(..., gt=0)
-    quantite: Optional[float] = Field(default=None, gt=0)
+    quantite: Optional[float] = Field(default=None)
     unite: str = Field(default="piece")
+
+    @field_validator("quantite", mode="before")
+    @classmethod
+    def parse_quantite(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, (int, float)):
+            return float(v)
+        match = re.search(r"[\d]+(?:[.,][\d]+)?", str(v))
+        if match:
+            return float(match.group().replace(",", "."))
+        return None
 
     @field_validator("unite", mode="before")
     @classmethod
@@ -80,13 +90,13 @@ JSON attendu (STRICT, sans ```json) :
   ]
 }}
 
+IMPORTANT : "quantite" doit être un nombre pur (ex: 5), jamais une chaîne avec unité (ex: "5 litres").
+
 TEXTE PDF :
-\"\"\"
-{text}
-\"\"\"
+\"\"\"{text}\"\"\"
 """.strip()
 
-# ── Extraction ────────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _clean_json(raw: str) -> str:
     raw = raw.strip()
@@ -98,21 +108,20 @@ def _clean_json(raw: str) -> str:
         return raw[start:end+1]
     return raw
 
+# ── Extraction ────────────────────────────────────────────────────────────────
+
 def extract_order_from_text(text: str) -> ExtractedOrder:
-    """Envoie le texte brut à l'IA et retourne l'order structuré."""
     if not text.strip():
         return ExtractedOrder()
 
-    response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+    response = ollama.chat(
+        model="llama3.2",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": EXTRACTION_PROMPT.format(text=text[:6000])}
-        ],
-        temperature=0,
+        ]
     )
-
-    raw = response.choices[0].message.content
+    raw = response["message"]["content"]
     data = json.loads(_clean_json(raw))
     return ExtractedOrder.model_validate(data)
 
@@ -124,9 +133,8 @@ def extract_order_from_pdf_file(filepath: str) -> ExtractedOrder:
     print(f"[PDF] OCR utilisé : {used_ocr} | {len(text)} caractères extraits")
     return extract_order_from_text(text)
 
-
 def extract_order_from_pdf_bytes(pdf_bytes: bytes) -> ExtractedOrder:
-    """PDF bytes (upload appli) → commande structurée."""
+    """PDF bytes (upload ou pièce jointe mail) → commande structurée."""
     text, used_ocr = extract_from_pdf_bytes(pdf_bytes)
     print(f"[PDF] OCR utilisé : {used_ocr} | {len(text)} caractères extraits")
     return extract_order_from_text(text)
